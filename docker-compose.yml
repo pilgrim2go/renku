@@ -93,7 +93,7 @@ services:
       traefik.enable: "true"
       traefik.frontend.rule: PathPrefix:/api/navigation
   graph-init:
-    image: ${IMAGE_REPOSITORY}renga-graph-init:$PLATFORM_VERSION
+    image: ${IMAGE_REPOSITORY}renga-graph-init:experimental
     environment:
       GRAPH_API_TYPES: http://reverse-proxy/api/types
       AUTHORIZATION_CLIENT_SECRET: $AUTHORIZATION_CLIENT_SECRET
@@ -173,13 +173,18 @@ services:
       traefik.enable: "true"
       traefik.frontend.rule: PathPrefix:/api/projects
   storage:
-    image: ${IMAGE_REPOSITORY}renga-storage:$PLATFORM_VERSION
+    image: ${IMAGE_REPOSITORY}renga-storage:experimental
     environment:
       AUTHORIZATION_CLIENT_SECRET: $AUTHORIZATION_CLIENT_SECRET
       PLAY_APPLICATION_SECRET: $PLAY_APPLICATION_SECRET
       RENGA_SERVICES_AUTHORIZATION_URL: ${RENGA_ENDPOINT}/auth/realms/Renga/protocol/openid-connect/auth
       RESOURCE_MANAGER_PUBLIC_KEY: $RESOURCE_MANAGER_PUBLIC_KEY
       STORAGE_BACKEND_LOCAL_ENABLED: "true"
+      GIT_REPO_URL: https://github.com/ebiiii/test-lfs.git
+      GIT_REPO_HOST: github.com
+      RENGA_ENDPOINT: https://testing.datascience.ch
+      GIT_REPO_USER: ebiiii
+      GIT_REPO_PASS: ${GIT_REPO_PASS}
     volumes:
     - ./services/storage/data:/data
     ports:
