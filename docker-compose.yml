@@ -180,13 +180,15 @@ services:
       RENGA_SERVICES_AUTHORIZATION_URL: ${RENGA_ENDPOINT}/auth/realms/Renga/protocol/openid-connect/auth
       RESOURCE_MANAGER_PUBLIC_KEY: $RESOURCE_MANAGER_PUBLIC_KEY
       STORAGE_BACKEND_LOCAL_ENABLED: "true"
-      GIT_REPO_URL: https://github.com/ebiiii/test-lfs.git
-      GIT_REPO_HOST: github.com
-      RENGA_ENDPOINT: https://testing.datascience.ch
-      GIT_REPO_USER: ebiiii
-      GIT_REPO_PASS: ${GIT_REPO_PASS}
+      RENGA_ENDPOINT: ${RENGA_ENDPOINT}
+      STORAGE_BACKEND_LOCALGIT_ENABLED: "true"
+      LOCAL_STORAGE_GIT_ROOT: /repo
     volumes:
     - ./services/storage/data:/data
+    - ./services/storage/repo:/repo
+    links:
+      - keycloak
+      - resource-manager
     ports:
     - 9000
     restart: on-failure
