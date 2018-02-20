@@ -93,7 +93,7 @@ services:
       traefik.enable: "true"
       traefik.frontend.rule: PathPrefix:/api/navigation
   graph-init:
-    image: ${IMAGE_REPOSITORY}renga-graph-init:experimental
+    image: ${IMAGE_REPOSITORY}renga-graph-init:$PLATFORM_VERSION
     environment:
       GRAPH_API_TYPES: http://reverse-proxy/api/types
       AUTHORIZATION_CLIENT_SECRET: $AUTHORIZATION_CLIENT_SECRET
@@ -173,7 +173,7 @@ services:
       traefik.enable: "true"
       traefik.frontend.rule: PathPrefix:/api/projects
   storage:
-    image: ${IMAGE_REPOSITORY}renga-storage:experimental
+    image: ${IMAGE_REPOSITORY}renga-storage:$PLATFORM_VERSION
     environment:
       AUTHORIZATION_CLIENT_SECRET: $AUTHORIZATION_CLIENT_SECRET
       PLAY_APPLICATION_SECRET: $PLAY_APPLICATION_SECRET
