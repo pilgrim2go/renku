@@ -182,10 +182,8 @@ services:
       STORAGE_BACKEND_LOCAL_ENABLED: "true"
       RENGA_ENDPOINT: ${RENGA_ENDPOINT}
       STORAGE_BACKEND_LOCALGIT_ENABLED: "true"
-      LOCAL_STORAGE_GIT_ROOT: /repo
     volumes:
     - ./services/storage/data:/data
-    - ./services/storage/repo:/repo
     links:
       - keycloak
       - resource-manager

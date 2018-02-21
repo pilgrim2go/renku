@@ -159,4 +159,4 @@ clean:
 
 wipe: clean
 	@rm -rf services/storage/data/*
-	@rm -rf services/storage/repo/*
+
