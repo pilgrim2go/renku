@@ -7,5 +7,5 @@ revoke all on schema "public" from "public";
 -- Create user
 
 create user "storage" password 'storage';
-grant connect on database "storage" to "storage";
-grant usage on schema "public" to "storage";
+grant all privileges on database "storage" to "storage";
+grant all privileges on schema "public" to "storage";
