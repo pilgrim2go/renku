@@ -6,13 +6,12 @@ version: 0.3.1 ##??
 ## version: %VERSION%
 ## appVersion: %APP_VERSION%
 home: https://github.com/topics/renku
-icon: https://github.com/rancher/ui/blob/master/public/assets/images/logos/welcome-cow.svg
+icon: icon: https://github.com/SwissDataScienceCenter/renku-sphinx-theme/raw/master/renku_sphinx_theme/static/favicon.png
 keywords:
   - renku
   - reproducibility
 sources:
   - https://github.com/SwissDataScienceCenter/renku
-  - https://github.com/rancher/server-chart
 maintainers:
   - name: Swiss Data Science Center (SDSC)
     email: contact@datascience.ch
