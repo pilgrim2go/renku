@@ -137,13 +137,21 @@ keycloak:
     ## Keycloak admin user configuration
     username: admin
     password:
-    existingSecret: keycloak-password-secret
+    existingSecret: '{{ template "renku.fullname" . }}-password'
     existingSecretKey: keycloak-password
 
-    livenessProbe:
+    livenessProbe: |
+      httpGet:
+        path: {{ if ne .Values.keycloak.basepath "" }}/{{ .Values.keycloak.basepath }}{{ end }}/
+        port: http
       initialDelaySeconds: 180
-    readinessProbe:
+      timeoutSeconds: 5
+    readinessProbe: |
+      httpGet:
+        path: {{ if ne .Values.keycloak.basepath "" }}/{{ .Values.keycloak.basepath }}{{ end }}/realms/master
+        port: http
       initialDelaySeconds: 120
+      timeoutSeconds: 1
 
     extraInitContainers: |
       - name: theme-provider
@@ -188,7 +196,7 @@ keycloak:
       # !!!
       ## This value is dependent on the Release name! (but helm charts don't allow templating values here.)
       # !!!
-      existingSecret: renku-keycloak-postgres
+      existingSecret: '{{ template "renku.fullname" . }}-postgres'
       existingSecretKey: keycloak-postgres-password
 
     ingress:
