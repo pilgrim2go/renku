@@ -65,7 +65,7 @@ notebooks:
         ## The GITLAB_URL value has to be overwritten when installing the chart
         # with http://$(minikube ip)/gitlab. See the chart README.rst.
         - name: GITLAB_URL
-          value: this-value-must-be-overwritten
+          value: &gitlabURL https://this-value-must-be-overwritten
         - name: DEBUG
           value: "1"
         - name: JUPYTERHUB_SPAWNER_CLASS
@@ -96,21 +96,11 @@ graph:
         password: 94a635b40afc2cba
       renku:
         password: &sparql-password 2b7cd80c595a6e98484c4b8a5ed5e82e
-
-  ## if running gitlab on minikube, set on cmd line with --set graph.gitlab.url
-  # gitlab:
-  #   url: https://example.com
-
+  gitlab:
+    url: *gitlabURL
   webhookService:
-    play:
-      secret: 79=CRbPUHVQg^kvjQyA>zyZ4s7>ElKz;wW4`<??BlJxO6pQTdlx5M<[jWxWylHx[
     hookToken:
       secret: NjFkNmJiODgyYjk4OWUzNwo=
-
-  triplesGenerator:
-    play:
-      secret: 3Ie]L>Gr7<ZBb]4lZrm5pgY>Ne5d1L<akIq>QQ3=3_>9kzKd<pEm;]7/eFWh/Wr4
-
   tokenRepository:
     tokenEncryption:
       secret: MGYxM2JiZTMzY2NhNDg1OQo=
