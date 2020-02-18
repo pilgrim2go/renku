@@ -27,7 +27,8 @@ jobs:
         command: |
           echo "$RENKUBOT_GPG_PRIVATE" > renkubot-privatekey.asc
           gpg --batch --yes --passphrase="$RENKUBOT_GPG_PASSPHRASE" --import renkubot-privatekey.asc
-          gpg --import $OPS_GPG_KEYS
+          printf "%s" "$OPS_GPG_KEYS" > ops.gpg.pub
+          gpg --import ops.gpg.pub
           curl -sL https://github.com/mozilla/sops/releases/download/v3.5.0/sops-v3.5.0.linux -o ./sops &&  chmod +x ./sops
           sudo mv ./sops /usr/local/bin/sops
           git clone git@github.com:SwissDataScienceCenter/ops-dev.renku.ch.git
