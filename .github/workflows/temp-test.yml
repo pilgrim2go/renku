@@ -1,0 +1,50 @@
+name: Deploy and Test
+
+on: [push]
+
+jobs:
+  github-env:
+    runs-on: ubuntu-latest
+    steps:
+    - name: get environment
+      run: env
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Deploy master to dev
+      uses: stefanprodan/kube-tools@v1
+      env:
+        KUBECONFIG: ${{ github.workspace }}/renkubot-kube.config
+        RENKUBOT_KUBECONFIG: ${{ secrets.RENKUBOT_KUBECONFIG }}
+        RENKUBOT_GPG_PASSPHRASE: ${{ secrets.RENKUBOT_GPG_PASSPHRASE }}
+        RENKUBOT_GPG_PRIVATE: ${{ secrets.RENKUBOT_GPG_PRIVATE }}
+        OPS_GPG_KEYS: ${{ secrets.OPS_GPG_KEYS }}
+        CD_VALUES: ${{ secrets.CD_VALUES }}
+      with:
+        kubectl: 1.16.2
+        helm: 2.16.1
+        command: |
+          echo "$RENKUBOT_GPG_PRIVATE" > renkubot-privatekey.asc
+          gpg --batch --yes --passphrase="$RENKUBOT_GPG_PASSPHRASE" --import renkubot-privatekey.asc
+          gpg --import $OPS_GPG_KEYS
+          curl -sL https://github.com/mozilla/sops/releases/download/v3.5.0/sops-v3.5.0.linux -o ./sops &&  chmod +x ./sops
+          sudo mv ./sops /usr/local/bin/sops
+          git clone git@github.com:SwissDataScienceCenter/ops-dev.renku.ch.git
+          cd ops-dev.renku.ch
+          make decrypt
+          make values
+          cd ..
+          cp ops-dev.renku.ch/renku-values.yaml cd_values.yaml
+          rm -fr ops-dev.renku.ch
+          echo "VALUES TO USE"
+          cat cd_values.yaml
+
+          echo "$RENKUBOT_KUBECONFIG" > renkubot-kube.config
+          helm init --client-only
+          helm repo add renku https://swissdatasciencecenter.github.io/helm-charts/
+          helm repo add gitlab https://charts.gitlab.io/
+          helm repo add jupyterhub https://jupyterhub.github.io/helm-chart
+          rm -rf charts/renku/charts
+          helm dependency update charts/renku
+          #printf "%s" "$CD_VALUES" > cd_values.yaml
