@@ -32,9 +32,11 @@ jobs:
           gpg --import ops.gpg.pub
           curl -sL https://github.com/mozilla/sops/releases/download/v3.5.0/sops-v3.5.0.linux -o ./sops &&  chmod +x ./sops
           mv ./sops /usr/local/bin/sops
-          #git clone git@github.com:SwissDataScienceCenter/ops-dev.renku.ch.git
           git clone https://RenkuBot:${RENKUBOT_OPSDEV_TOKEN}@github.com/SwissDataScienceCenter/ops-dev.renku.ch.git
           cd ops-dev.renku.ch
+          echo "::debug file=app.js,line=1::ls"
+          export keys=`gpg --list-keys`
+          echo "::debug file=app.js,line=1::$keys"  
           make decrypt
           make values
           cd ..
