@@ -21,18 +21,19 @@ jobs:
         RENKUBOT_GPG_PRIVATE: ${{ secrets.RENKUBOT_GPG_PRIVATE }}
         OPS_GPG_KEYS: ${{ secrets.OPS_GPG_KEYS }}
         CD_VALUES: ${{ secrets.CD_VALUES }}
+        RENKUBOT_OPSDEV_TOKEN: ${{ secrets.RENKUBOT_OPSDEV_TOKEN }}
       with:
         kubectl: 1.16.2
         helm: 2.16.1
         command: |
-          set -x
           echo "$RENKUBOT_GPG_PRIVATE" > renkubot-privatekey.asc
           gpg --batch --yes --passphrase="$RENKUBOT_GPG_PASSPHRASE" --import renkubot-privatekey.asc
           printf "%s" "$OPS_GPG_KEYS" > ops.gpg.pub
           gpg --import ops.gpg.pub
           curl -sL https://github.com/mozilla/sops/releases/download/v3.5.0/sops-v3.5.0.linux -o ./sops &&  chmod +x ./sops
           mv ./sops /usr/local/bin/sops
-          git clone git@github.com:SwissDataScienceCenter/ops-dev.renku.ch.git
+          #git clone git@github.com:SwissDataScienceCenter/ops-dev.renku.ch.git
+          git clone https://RenkuBot:${RENKUBOT_OPSDEV_TOKEN}@github.com/SwissDataScienceCenter/ops-dev.renku.ch.git
           cd ops-dev.renku.ch
           make decrypt
           make values
