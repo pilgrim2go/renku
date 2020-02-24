@@ -23,6 +23,7 @@ jobs:
         OPS_GPG_KEYS: ${{ secrets.OPS_GPG_KEYS }}
         CD_VALUES: ${{ secrets.CD_VALUES }}
         RENKUBOT_OPSDEV_TOKEN: ${{ secrets.RENKUBOT_OPSDEV_TOKEN }}
+        TRUSTED_GPG: ${{ secrets.TRUSTED_GPG }}
       with:
         kubectl: 1.16.2
         helm: 2.16.1
@@ -34,15 +35,14 @@ jobs:
           export keys=`gpg --list-keys`
           echo "::warning file=app.js,line=1,col=5::BEFORE $keys"
           export tty=`ls -al /dev/`
-          echo "::warning file=app.js,line=1,col=5::BEFORE creating script"
-          echo " #!/bin/bash \n echo -e "trust\n5\ny\n" |  gpg --command-fd 0 --expert --edit-key 2E8E3E6447725A15025BD90E859123913F532F3E" > test-gpg.sh
-          chmod +x test-gpg.sh
-          echo "::warning file=app.js,line=1,col=5::BEFORE executing script"
-          ./test-gpg.sh
-          keys=`gpg --list-keys`
-          echo "::warning file=app.js,line=1,col=5::AFTER executing script $keys"
+          printf \"%s\" \"$TRUSTED_GPG\" > trusted_gpg_keys
+          export OLDTRUST=`cat trusted_gpg_keys`
+          echo "::warning file=app.js,line=1,col=5::BEFORE import trust $OLDTRUST"
+          gpg --import-ownertrust trusted_gpg_keys
 
-          # echo -e "trust\n5\ny\n" |  gpg --command-fd 0 --expert --edit-key 2E8E3E6447725A15025BD90E859123913F532F3E
+          export NEWTRUST=`gpg --export-ownertrust`
+          echo "::warning file=app.js,line=1,col=5::AFTER import trust $NEWTRUST"
+
           export keys=`gpg --list-keys`
           echo "::warning file=app.js,line=1,col=5::AFTER $keys"
 
