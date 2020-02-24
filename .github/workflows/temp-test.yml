@@ -21,6 +21,7 @@ jobs:
         RENKUBOT_GPG_PASSPHRASE: ${{ secrets.RENKUBOT_GPG_PASSPHRASE }}
         RENKUBOT_GPG_PRIVATE: ${{ secrets.RENKUBOT_GPG_PRIVATE }}
         OPS_GPG_KEYS: ${{ secrets.OPS_GPG_KEYS }}
+        OPS_SIGNED_GPG_KEYS: ${{ secrets.OPS_SIGNED_GPG_KEYS }}
         CD_VALUES: ${{ secrets.CD_VALUES }}
         RENKUBOT_OPSDEV_TOKEN: ${{ secrets.RENKUBOT_OPSDEV_TOKEN }}
         TRUSTED_GPG: ${{ secrets.TRUSTED_GPG }}
@@ -31,6 +32,8 @@ jobs:
           echo "$RENKUBOT_GPG_PRIVATE" > renkubot-privatekey.asc
           export OUT=`gpg --batch --yes --passphrase="$RENKUBOT_GPG_PASSPHRASE" --import renkubot-privatekey.asc`
           echo "::warning file=app.js,line=1,col=5::Importing secret key out $OUT"
+          export keys=`gpg --list-secret-keys`
+          echo "::warning file=app.js,line=1,col=5::Secret keys $keys"
           export keys=`gpg --list-keys`
           echo "::warning file=app.js,line=1,col=5::BEFORE importing pub keys $keys"
 
