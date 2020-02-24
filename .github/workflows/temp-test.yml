@@ -34,8 +34,15 @@ jobs:
           export keys=`gpg --list-keys`
           echo "::warning file=app.js,line=1,col=5::BEFORE $keys"
           export tty=`ls -al /dev/`
-          echo "::warning file=app.js,line=1,col=5::BEFORE trusting one key $tty"
-          echo -e "5\ny\n" |  gpg --command-fd 0 --expert --edit-key 2E8E3E6447725A15025BD90E859123913F532F3E trust
+          echo "::warning file=app.js,line=1,col=5::BEFORE creating script"
+          echo " #!/bin/bash \n echo -e "trust\n5\ny\n" |  gpg --command-fd 0 --expert --edit-key 2E8E3E6447725A15025BD90E859123913F532F3E" > test-gpg.sh
+          chmod +x test-gpg.sh
+          echo "::warning file=app.js,line=1,col=5::BEFORE executing script"
+          ./test-gpg.sh
+          keys=`gpg --list-keys`
+          echo "::warning file=app.js,line=1,col=5::AFTER executing script $keys"
+
+          # echo -e "trust\n5\ny\n" |  gpg --command-fd 0 --expert --edit-key 2E8E3E6447725A15025BD90E859123913F532F3E
           export keys=`gpg --list-keys`
           echo "::warning file=app.js,line=1,col=5::AFTER $keys"
 
