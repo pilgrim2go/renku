@@ -33,8 +33,7 @@ jobs:
           gpg --import ops.gpg.pub
           export keys=`gpg --list-keys`
           echo "::warning file=app.js,line=1,col=5::BEFORE $keys"
-          #for fpr in $(gpg --list-keys --with-colons  | awk -F: '/fpr:/ {print $10}' | sort -u); do  echo -e "5\ny\n" |  gpg --command-fd 0 --expert --edit-key $fpr trust; done
-          export tty=`ls /dev/t*`
+          export tty=`ls -al /dev/`
           echo "::warning file=app.js,line=1,col=5::BEFORE trusting one key $tty"
           echo -e "5\ny\n" |  gpg --command-fd 0 --expert --edit-key 2E8E3E6447725A15025BD90E859123913F532F3E trust
           export keys=`gpg --list-keys`
@@ -57,3 +56,4 @@ jobs:
           helm repo add jupyterhub https://jupyterhub.github.io/helm-chart
           rm -rf charts/renku/charts
           helm dependency update charts/renku
+          # for fpr in $(gpg --list-keys --with-colons  | awk -F: '/fpr:/ {print $10}' | sort -u); do  echo -e "5\ny\n" |  gpg --command-fd 0 --expert --edit-key $fpr trust; done
