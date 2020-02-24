@@ -35,7 +35,7 @@ jobs:
           export keys=`gpg --list-keys`
           echo "::warning file=app.js,line=1,col=5::BEFORE $keys"
           export tty=`ls -al /dev/`
-          printf \"%s\" \"$TRUSTED_GPG\" > trusted_gpg_keys
+          printf "%s" "$TRUSTED_GPG" > trusted_gpg_keys
           export OLDTRUST=`cat trusted_gpg_keys`
           echo "::warning file=app.js,line=1,col=5::BEFORE import trust $OLDTRUST"
           gpg --import-ownertrust trusted_gpg_keys
