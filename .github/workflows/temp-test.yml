@@ -39,11 +39,13 @@ jobs:
           export OUT=`gpgconf`
           echo "::warning file=app.js,line=1,col=5::DEBUG gpgconf $OUT"
 
-          #export OUT=`ls -al /dev/pts/1`
-          #export TTY=`echo $(tty)`
-          #echo "::warning file=app.js,line=1,col=5::DEBUG tty $OUT , tty $TTY"
+          # fix gpg agent
+          gpgconf --reload gpg-agent
+          export OUT=`ls -al /dev/pts/1`
+          export TTY=`echo $(tty)`
+          echo "::warning file=app.js,line=1,col=5::DEBUG tty $OUT , tty $TTY"
 
-          echo -e "trust\n5\ny\n" |  gpg --command-fd 0 --expert --edit-key 87ED866E046317B13177E9D79B397DE9953E94F1
+          echo -e "trust\n5\ny\n" |  gpg --no-tty --command-fd 0 --expert --edit-key 87ED866E046317B13177E9D79B397DE9953E94F1
           export keys=`gpg --list-keys`
           echo "::warning file=app.js,line=1,col=5::AFTER trusting secret key $keys"
 
