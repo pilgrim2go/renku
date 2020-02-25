@@ -13,53 +13,65 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Decrypt values
+      env:
+        RENKUBOT_GPG_PASSPHRASE: ${{ secrets.RENKUBOT_GPG_PASSPHRASE }}
+        RENKUBOT_GPG_PRIVATE: ${{ secrets.RENKUBOT_GPG_PRIVATE }}
+        OPS_GPG_KEYS: ${{ secrets.OPS_GPG_KEYS }}
+        OPS_SIGNED_GPG_KEYS: ${{ secrets.OPS_SIGNED_GPG_KEYS }}
+        RENKUBOT_OPSDEV_TOKEN: ${{ secrets.RENKUBOT_OPSDEV_TOKEN }}
+        TRUSTED_GPG: ${{ secrets.TRUSTED_GPG }}
+      shell: bash
+      run: |
+          # Import secret key
+          echo "$RENKUBOT_GPG_PRIVATE" > renkubot-privatekey.asc
+          gpg --batch --yes --passphrase="$RENKUBOT_GPG_PASSPHRASE" --import renkubot-privatekey.asc
+          export keys=`gpg --list-secret-keys`
+          echo "::warning file=app.js,line=1,col=5::Secret keys $keys"
+
+          expect -c "spawn gpg --edit-key 87ED866E046317B13177E9D79B397DE9953E94F1 trust quit; send \"5\ry\r\"; expect eof"
+          export keys=`gpg --list-keys`
+          echo "::warning file=app.js,line=1,col=5::AFTER trusting secret key $keys"
+
+          # Import public keys
+          printf "%s" "$OPS_SIGNED_GPG_KEYS" > ops.gpg.pub
+          gpg --import ops.gpg.pub
+          export keys=`gpg --list-keys`
+          echo "::warning file=app.js,line=1,col=5::AFTER importing public keys"
+
+          # TODO trust ops keys
+
+          # Install sops
+          curl -sL https://github.com/mozilla/sops/releases/download/v3.5.0/sops-v3.5.0.linux -o ./sops &&  chmod +x ./sops
+          mv ./sops /usr/local/bin/sops
+          export OUT=`sops --version`
+          echo "::warning file=app.js,line=1,col=5::Installed SOPS $OUT"
+          GPG_TTY=$(tty)
+          export GPG_TTY
+
+          git clone https://RenkuBot:${RENKUBOT_OPSDEV_TOKEN}@github.com/SwissDataScienceCenter/ops-dev.renku.ch.git
+          cd ops-dev.renku.ch
+          echo "::warning file=app.js,line=1,col=5::AFTER trusting secret key $keys"
+
+          echo "::warning file=app.js,line=1,col=5::BEFORE decrypt"
+          sops decrypt -p 87ED866E046317B13177E9D79B397DE9953E94F1 secured-values.yaml > unsecured-values.yaml
+          echo "::warning file=app.js,line=1,col=5::AFTER decrypt"
+          # make decrypt
+          make values
+          cd ..
+          cp ops-dev.renku.ch/renku-values.yaml cd_values.yaml
+          rm -fr ops-dev.renku.ch
     - name: Deploy master to dev
       uses: stefanprodan/kube-tools@v1
       env:
         KUBECONFIG: ${{ github.workspace }}/renkubot-kube.config
         RENKUBOT_KUBECONFIG: ${{ secrets.RENKUBOT_KUBECONFIG }}
-        RENKUBOT_GPG_PASSPHRASE: ${{ secrets.RENKUBOT_GPG_PASSPHRASE }}
-        RENKUBOT_GPG_PRIVATE: ${{ secrets.RENKUBOT_GPG_PRIVATE }}
-        OPS_GPG_KEYS: ${{ secrets.OPS_GPG_KEYS }}
-        OPS_SIGNED_GPG_KEYS: ${{ secrets.OPS_SIGNED_GPG_KEYS }}
         CD_VALUES: ${{ secrets.CD_VALUES }}
-        RENKUBOT_OPSDEV_TOKEN: ${{ secrets.RENKUBOT_OPSDEV_TOKEN }}
-        TRUSTED_GPG: ${{ secrets.TRUSTED_GPG }}
+      shell: bash
       with:
         kubectl: 1.16.2
         helm: 2.16.1
         command: |
-          echo "$RENKUBOT_GPG_PRIVATE" > renkubot-privatekey.asc
-          export OUT=`gpg --batch --yes --passphrase="$RENKUBOT_GPG_PASSPHRASE" --import renkubot-privatekey.asc`
-          echo "::warning file=app.js,line=1,col=5::Importing secret key out $OUT"
-          export keys=`gpg --list-secret-keys`
-          echo "::warning file=app.js,line=1,col=5::Secret keys $keys"
-          export keys=`gpg --list-keys`
-          echo "::warning file=app.js,line=1,col=5::BEFORE importing pub keys $keys"
-
-          printf "%s" "$OPS_SIGNED_GPG_KEYS" > ops.gpg.pub
-          export OUT=`gpg --import ops.gpg.pub`
-          echo "::warning file=app.js,line=1,col=5::Importing public keys out $OUT"
-          export keys=`gpg --list-keys`
-          echo "::warning file=app.js,line=1,col=5::AFTER $keys"
-          # printf "%s" "$TRUSTED_GPG" > trusted_gpg_keys
-          # export OLDTRUST=`cat trusted_gpg_keys`
-          # echo "::warning file=app.js,line=1,col=5::BEFORE import trust $OLDTRUST"
-          # gpg --import-ownertrust trusted_gpg_keys
-
-          # export NEWTRUST=`gpg --export-ownertrust`
-          # echo "::warning file=app.js,line=1,col=5::AFTER import trust $NEWTRUST"
-
-          curl -sL https://github.com/mozilla/sops/releases/download/v3.5.0/sops-v3.5.0.linux -o ./sops &&  chmod +x ./sops
-          mv ./sops /usr/local/bin/sops
-          git clone https://RenkuBot:${RENKUBOT_OPSDEV_TOKEN}@github.com/SwissDataScienceCenter/ops-dev.renku.ch.git
-          cd ops-dev.renku.ch
-          make decrypt
-          make values
-          cd ..
-          cp ops-dev.renku.ch/renku-values.yaml cd_values.yaml
-          rm -fr ops-dev.renku.ch
-
           echo "$RENKUBOT_KUBECONFIG" > renkubot-kube.config
           helm init --client-only
           helm repo add renku https://swissdatasciencecenter.github.io/helm-charts/
