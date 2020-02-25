@@ -13,11 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: setup-gpg
-      uses: olafurpg/setup-gpg@v2
+    - uses: olafurpg/setup-gpg@v2
+    - name: test-gpg
       run: |
         export GPG_TTY=`$(tty)`
-        echo "::warning file=app.js,line=1,col=5::Start configuration, tty: $GPG_TTY"        
+        echo "::warning file=app.js,line=1,col=5::Start configuration, tty: $GPG_TTY"
     - name: Decrypt values
       env:
         RENKUBOT_GPG_PASSPHRASE: ${{ secrets.RENKUBOT_GPG_PASSPHRASE }}
