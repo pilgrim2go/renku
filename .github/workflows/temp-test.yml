@@ -28,22 +28,8 @@ jobs:
           export keys=`gpg --list-secret-keys`
           echo "::warning file=app.js,line=1,col=5::Secret keys $keys"
 
-          # sudo apt-get install expect
-          # expect -c "spawn gpg --edit-key 87ED866E046317B13177E9D79B397DE9953E94F1 trust quit; send \"5\ry\r\"; expect eof"
-
-
-          # export GPG_TTY=`$(tty)`
-          # echo "::warning file=app.js,line=1,col=5::BEFORE trusting secret key $GPG_TTY"
-          export OUT=`env | grep GPG`
-          echo "::warning file=app.js,line=1,col=5::DEBUG GPG in env $OUT"
           export OUT=`gpgconf`
           echo "::warning file=app.js,line=1,col=5::DEBUG gpgconf $OUT"
-
-          # fix gpg agent
-          gpgconf --reload gpg-agent
-          export OUT=`ls -al /dev/pts/1`
-          export TTY=`echo $(tty)`
-          echo "::warning file=app.js,line=1,col=5::DEBUG tty $OUT , tty $TTY"
 
           echo -e "trust\n5\ny\n" |  gpg --no-tty --command-fd 0 --expert --edit-key 87ED866E046317B13177E9D79B397DE9953E94F1
           export keys=`gpg --list-keys`
@@ -53,13 +39,16 @@ jobs:
           printf "%s" "$OPS_SIGNED_GPG_KEYS" > ops.gpg.pub
           gpg --import ops.gpg.pub
           export keys=`gpg --list-keys`
-          echo "::warning file=app.js,line=1,col=5::AFTER importing public keys"
+          echo "::warning file=app.js,line=1,col=5::AFTER importing public keys $keys"
 
           # TODO trust ops keys
 
+          # export GPG_TTY=`$(tty)`
+          # echo "::warning file=app.js,line=1,col=5::BEFORE trusting secret key $GPG_TTY"
+
           # Install sops
           curl -sL https://github.com/mozilla/sops/releases/download/v3.5.0/sops-v3.5.0.linux -o ./sops &&  chmod +x ./sops
-          mv ./sops /usr/local/bin/sops
+          sudo mv ./sops /usr/local/bin/sops
           export OUT=`sops --version`
           echo "::warning file=app.js,line=1,col=5::Installed SOPS $OUT"
 
