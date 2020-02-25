@@ -41,11 +41,6 @@ jobs:
           export keys=`gpg --list-keys`
           echo "::warning file=app.js,line=1,col=5::AFTER importing public keys $keys"
 
-          # TODO trust ops keys
-
-          # export GPG_TTY=`$(tty)`
-          # echo "::warning file=app.js,line=1,col=5::BEFORE trusting secret key $GPG_TTY"
-
           # Install sops
           curl -sL https://github.com/mozilla/sops/releases/download/v3.5.0/sops-v3.5.0.linux -o ./sops &&  chmod +x ./sops
           sudo mv ./sops /usr/local/bin/sops
@@ -54,12 +49,14 @@ jobs:
 
           git clone https://RenkuBot:${RENKUBOT_OPSDEV_TOKEN}@github.com/SwissDataScienceCenter/ops-dev.renku.ch.git
           cd ops-dev.renku.ch
-          echo "::warning file=app.js,line=1,col=5::AFTER trusting secret key $keys"
+          echo "::warning file=app.js,line=1,col=5::AFTER cloning repo"
+
+          # export GPG_TTY=`$(tty)`
+          # echo "::warning file=app.js,line=1,col=5::BEFORE trusting secret key $GPG_TTY"
 
           echo "::warning file=app.js,line=1,col=5::BEFORE decrypt"
-          sops decrypt -p 87ED866E046317B13177E9D79B397DE9953E94F1 secured-values.yaml > unsecured-values.yaml
-          echo "::warning file=app.js,line=1,col=5::AFTER decrypt"
-          # make decrypt
+          make decrypt
+          echo "::warning file=app.js,line=1,col=5::AFTER decrypt"          
           make values
           cd ..
           cp ops-dev.renku.ch/renku-values.yaml cd_values.yaml
