@@ -13,6 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: setup-gpg
+      uses: olafurpg/setup-gpg@v2
+      run: |
+        export GPG_TTY=`$(tty)`
+        echo "::warning file=app.js,line=1,col=5::Start configuration, tty: $GPG_TTY"        
     - name: Decrypt values
       env:
         RENKUBOT_GPG_PASSPHRASE: ${{ secrets.RENKUBOT_GPG_PASSPHRASE }}
@@ -54,8 +59,6 @@ jobs:
           cd ops-dev.renku.ch
           echo "::warning file=app.js,line=1,col=5::AFTER cloning repo"
 
-          gpg --no-expert --no-batch --list-keys
-          export OUT=`gpgconf`
           echo "::warning file=app.js,line=1,col=5::BEFORE reloading gpgconf $OUT"
           gpgconf --reload gpg-agent
           export OUT=`gpgconf`
