@@ -17,7 +17,8 @@ jobs:
     - name: test-gpg
       run: |
         export GPG_TTY=`$(tty)`
-        echo "::warning file=app.js,line=1,col=5::Start configuration, tty: $GPG_TTY"
+        export VERSION=`gpg --version`
+        echo "::warning file=app.js,line=1,col=5::Start configuration, tty: $GPG_TTY, version $VERSION"
     - name: Decrypt values
       env:
         RENKUBOT_GPG_PASSPHRASE: ${{ secrets.RENKUBOT_GPG_PASSPHRASE }}
