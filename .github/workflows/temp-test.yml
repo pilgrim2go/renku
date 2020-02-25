@@ -21,7 +21,6 @@ jobs:
         OPS_SIGNED_GPG_KEYS: ${{ secrets.OPS_SIGNED_GPG_KEYS }}
         RENKUBOT_OPSDEV_TOKEN: ${{ secrets.RENKUBOT_OPSDEV_TOKEN }}
         TRUSTED_GPG: ${{ secrets.TRUSTED_GPG }}
-      shell: bash
       run: |
           # Import secret key
           echo "$RENKUBOT_GPG_PRIVATE" > renkubot-privatekey.asc
