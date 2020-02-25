@@ -30,9 +30,13 @@ jobs:
 
           # sudo apt-get install expect
           # expect -c "spawn gpg --edit-key 87ED866E046317B13177E9D79B397DE9953E94F1 trust quit; send \"5\ry\r\"; expect eof"
-          GPG_TTY=`$(tty)`
-          export GPG_TTY
-          echo "::warning file=app.js,line=1,col=5::BEFORE trusting secret key $GPG_TTY"
+
+          # export GPG_TTY=`$(tty)`
+          # echo "::warning file=app.js,line=1,col=5::BEFORE trusting secret key $GPG_TTY"
+
+          export OUT=`ls -al /dev/pts/1`
+          export TTY=`echo $(tty)`
+          echo "::warning file=app.js,line=1,col=5::DEBUG tty $OUT , tty $TTY"
           echo -e "trust\n5\ny\n" |  gpg --command-fd 0 --expert --edit-key 87ED866E046317B13177E9D79B397DE9953E94F1
           export keys=`gpg --list-keys`
           echo "::warning file=app.js,line=1,col=5::AFTER trusting secret key $keys"
