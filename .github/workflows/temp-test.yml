@@ -28,9 +28,6 @@ jobs:
           export keys=`gpg --list-secret-keys`
           echo "::warning file=app.js,line=1,col=5::Secret keys $keys"
 
-          export OUT=`gpgconf`
-          echo "::warning file=app.js,line=1,col=5::DEBUG gpgconf $OUT"
-
           echo -e "trust\n5\ny\n" |  gpg --no-tty --command-fd 0 --expert --edit-key 87ED866E046317B13177E9D79B397DE9953E94F1
           export keys=`gpg --list-keys`
           echo "::warning file=app.js,line=1,col=5::AFTER trusting secret key $keys"
@@ -51,12 +48,16 @@ jobs:
           cd ops-dev.renku.ch
           echo "::warning file=app.js,line=1,col=5::AFTER cloning repo"
 
-          # export GPG_TTY=`$(tty)`
-          # echo "::warning file=app.js,line=1,col=5::BEFORE trusting secret key $GPG_TTY"
 
-          echo "::warning file=app.js,line=1,col=5::BEFORE decrypt"
+          export OUT=`gpgconf`
+          echo "::warning file=app.js,line=1,col=5::BEFORE reloading gpgconf $OUT"
+          gpgconf --reload gpg-agent
+          export OUT=`gpgconf`
+          echo "::warning file=app.js,line=1,col=5::BEFORE reloading gpgconf $OUT"
+          export GPG_TTY=`$(tty)`
+          echo "::warning file=app.js,line=1,col=5::BEFORE decrypting, tty: $GPG_TTY"
           make decrypt
-          echo "::warning file=app.js,line=1,col=5::AFTER decrypt"          
+          echo "::warning file=app.js,line=1,col=5::AFTER decrypt"
           make values
           cd ..
           cp ops-dev.renku.ch/renku-values.yaml cd_values.yaml
