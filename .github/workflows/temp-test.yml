@@ -28,8 +28,8 @@ jobs:
           export keys=`gpg --list-secret-keys`
           echo "::warning file=app.js,line=1,col=5::Secret keys $keys"
 
-          #sudo apt-get install expect
-          #expect -c "spawn gpg --edit-key 87ED866E046317B13177E9D79B397DE9953E94F1 trust quit; send \"5\ry\r\"; expect eof"
+          # sudo apt-get install expect
+          # expect -c "spawn gpg --edit-key 87ED866E046317B13177E9D79B397DE9953E94F1 trust quit; send \"5\ry\r\"; expect eof"
           echo -e "trust\n5\ny\n" |  gpg --command-fd 0 --expert --edit-key 87ED866E046317B13177E9D79B397DE9953E94F1
           export keys=`gpg --list-keys`
           echo "::warning file=app.js,line=1,col=5::AFTER trusting secret key $keys"
