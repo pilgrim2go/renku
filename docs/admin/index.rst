@@ -122,6 +122,16 @@ For instance, make a user admin on GitLab.
 3. modify any users you want to modify (e.g. to make them admin)
 4. turn the automatic redirect back on
 
+5. (Optional) Notebooks for anonymous users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Logged-out users can be given the permission to launch interactive sessions from public notebooks. This feature is
+turned off by default. For details on how to enable this feature, see the dedicated section.
+
+.. toctree::
+   :maxdepth: 1
+
+   Enabling notebooks for anonymous users <anonymous-sessions>
+
 Verifying Renku
 ------------------
 

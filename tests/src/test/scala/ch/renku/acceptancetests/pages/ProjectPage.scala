@@ -4,16 +4,18 @@ import ch.renku.acceptancetests.model.projects.ProjectDetails
 import ch.renku.acceptancetests.model.projects.ProjectDetails._
 import ch.renku.acceptancetests.model.users.UserCredentials
 import ch.renku.acceptancetests.pages.Page.{Path, Title}
+import ch.renku.acceptancetests.tooling.AcceptanceSpec
 
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.auto._
 
-import org.openqa.selenium.{WebDriver, WebElement}
+import org.openqa.selenium.{By, WebDriver, WebElement}
 import org.scalatestplus.selenium.WebBrowser
 import org.scalatestplus.selenium.WebBrowser.{cssSelector, find, findAll}
 import org.scalatest.time.{Millis, Seconds, Span}
 
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 
 import org.scalactic.source
@@ -121,7 +123,7 @@ class ProjectPage(projectDetails: ProjectDetails, userCredentials: UserCredentia
       }
 
       def content(implicit webDriver: WebDriver): WebElement = eventually {
-        find(cssSelector("div.card-body h1 + p")) getOrElse fail("Files -> Info content not found")
+        find(cssSelector("div.card-body h1 + h2 + p")) getOrElse fail("Files -> Info content not found")
       }
     }
 
@@ -153,11 +155,12 @@ class ProjectPage(projectDetails: ProjectDetails, userCredentials: UserCredentia
         find(cssSelector(s"div.tree-container nav")) getOrElse fail("Datasets list not found")
       }
 
-      def flights(implicit webDriver: WebDriver): WebElement = eventually {
-        find(cssSelector("div.tree-container nav a div"))
-          .find(_.text == "2019-01 US Flights")
-          .getOrElse(fail("Dataset 'flights' not found"))
-      }
+      def flights(implicit webDriver: WebDriver): WebElement =
+        eventually {
+          find(cssSelector("div.project-list-row > div > b > span.issue-title > a"))
+            .find(_.text == "2019-01 US Flights")
+            .getOrElse(fail("Dataset 'flights' not found"))
+        }(waitUpTo(120 seconds), implicitly[source.Position])
     }
   }
 
@@ -173,23 +176,19 @@ class ProjectPage(projectDetails: ProjectDetails, userCredentials: UserCredentia
 
     def startEnvironment(implicit webDriver: WebDriver): WebElement = eventually {
       verifyImageReady
-      find(cssSelector("button.btn.btn-primary:last-of-type")) getOrElse fail("Start environment button not found")
+      findAll(cssSelector("button.btn.btn-primary:last-of-type"))
+        .find(_.text == "Start environment")
+        .getOrElse(fail("Start environment button not found"))
     }
 
     def verifyImageReady(implicit webDriver: WebDriver): Unit =
       eventually {
         findImageReadyBadge getOrElse waitForImageToBeReady
-      }(
-        PatienceConfig(
-          timeout  = scaled(Span(300, Seconds)),
-          interval = scaled(Span(2, Seconds))
-        ),
-        implicitly[source.Position]
-      )
+      }(waitUpTo(10 minutes), implicitly[source.Position])
 
     private def waitForImageToBeReady(implicit webDriver: WebDriver): Unit = {
       find(cssSelector(".badge.badge-warning")) getOrElse fail("Image building info badges not found");
-      Thread.sleep(2000);
+      sleep(2 seconds)
       findImageReadyBadge getOrElse fail("Image not yet built")
     }
 
@@ -204,6 +203,27 @@ class ProjectPage(projectDetails: ProjectDetails, userCredentials: UserCredentia
           .getOrElse(fail("Environments -> Running title not found"))
       }
 
+      def connectToJupyterLab(implicit webDriver: WebDriver, spec: AcceptanceSpec): Unit = eventually {
+        import spec.{And, Then}
+        And("tries to connect to JupyterLab")
+        connectButton.click
+        sleep(2 seconds)
+
+        // Check if we are connected to JupyterLab
+        val tabs = webDriver.getWindowHandles.asScala.toArray
+        webDriver.switchTo() window tabs(1)
+        if (webDriver.getCurrentUrl contains "/jupyterhub/hub/user") {
+          And("JupyterLab is not up yet")
+          Then("close the window and try again later")
+          // The server isn't up yet. Close the window and try again
+          webDriver.close
+          webDriver.switchTo() window tabs(0)
+          fail("Could not connect to JupyterLab")
+        } else {
+          webDriver.switchTo() window tabs(0)
+        }
+      }
+
       def connectButton(implicit webDriver: WebDriver): WebElement = eventually {
         find(
           cssSelector(
@@ -215,7 +235,8 @@ class ProjectPage(projectDetails: ProjectDetails, userCredentials: UserCredentia
       }
 
       def connectDotButton(implicit webDriver: WebDriver): WebElement = eventually {
-        find(cssSelector("button.btn.btn-primary svg[data-icon='ellipsis-v']"))
+        findAll(cssSelector("button.btn.btn-primary svg[data-icon='ellipsis-v']"))
+          .find(_.findElement(By.xpath("./../..")).getText().equals("Connect"))
           .getOrElse(fail("First row Interactive Environment ... button not found"))
           .parent
       }
@@ -226,9 +247,11 @@ class ProjectPage(projectDetails: ProjectDetails, userCredentials: UserCredentia
           .parent
       }
 
-      def verifyEnvironmentReady(implicit webDriver: WebDriver): Unit = eventually {
-        find(cssSelector(".text-nowrap.p-1.badge.badge-success")) getOrElse waitForImageToBeReady
-      }
+      def verifyEnvironmentReady(implicit webDriver: WebDriver): Unit =
+        eventually {
+          find(cssSelector(".text-nowrap.p-1.badge.badge-success"))
+            .getOrElse(fail("Interactive environment is not ready"))
+        }(waitUpTo(10 minutes), implicitly[source.Position])
     }
   }
 
@@ -277,7 +300,7 @@ class ProjectPage(projectDetails: ProjectDetails, userCredentials: UserCredentia
         tf.sendKeys(List.fill(40)("\b").mkString(""))
         tf.sendKeys(project.title.value) sleep (1 second)
 
-        forkButton.click() sleep (1 second)
+        forkButton.click() sleep (10 second)
       }
 
     private def titleField(implicit webDriver: WebDriver): WebElement = eventually {

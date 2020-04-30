@@ -83,6 +83,15 @@ global:
       dataset:
   ## Set to true if using https
   useHTTPS: false
+  anonymousSessions:
+    ## Set to true to enable anonymous sessions through
+    ## a secondary Jupyterhub instance
+    enabled: false
+    ## Set the postgres password for you secondary JH deployment
+    ## or force the (re)generation of it on helm upgrade.
+    postgresPassword:
+      value:
+      overwriteOnHelmUpgrade: false
 
 ## Ingress configuration
 ## See: https://kubernetes.io/docs/concepts/services-networking/ingress/
@@ -493,11 +502,6 @@ ui:
   #   repository: renku/renku-ui
   #   tag: latest
 
-  ## Where to fetch default templates from
-  # templatesRepository:
-  #   url: https://github.com/SwissDataScienceCenter/renku-project-template
-  #   ref: 0.1.3
-
   ingress:
     enabled: false
 
@@ -516,18 +520,23 @@ ui:
   # service:
   #   port: 80
   #   type: ClusterIP
+
   ## Set the GitLab URL
   # gitlabUrl: "http://gitlab.renku.build"
+
   ## Configure application ID from "{{ gitlabUrl }}/oauth/application"
   ## by setting redirect URL to "{{ baseUrl }}/login/redirect/gitlab"
   ## and set the application ID as the "gitlabClientId" chart value.
   # gitlabClientId: "renku-ui"
+
   ## Set the JupyterHub URL
   # jupyterhubUrl: "http://jupyterhub.renku.build"
+
   ## Configuration for where to get the base project templates: a url and ref (usually a tag)
-  # templatesRepository:
+  templatesRepository:
     # url: https://github.com/SwissDataScienceCenter/renku-project-template
-    # ref: 0.1.5
+    # ref: 0.1.6
+
   ## Configuration for Sentry
   # sentry:
   #   enabled: false
@@ -575,13 +584,14 @@ notebooks:
     # rbac:
     #   enabled: true
     ## Set the notebooks service API token
-    # hub:
-    #   services:
+    hub:
+      services:
         # notebooks:
         #   api_token: notebookstoken
 
         ## define the client ID and secret for the gateway
-        # gateway:
+        gateway:
+          oauth_no_confirm: true
         #  oauth_client_id: gateway
         #  apiToken: # use `openssl rand -hex 32`
         #  oauth_redirect_uri: http://<gateway>/api/auth/jupyterhub/token
