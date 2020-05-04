@@ -23,7 +23,7 @@ jobs:
         TRUSTED_GPG: ${{ secrets.TRUSTED_GPG }}
       run: |
           export keys=`gpg --list-secret-keys`
-          echo "::warning file=app.js,line=1,col=5::Secret keys $keys"
+          echo "Secret keys $keys"
 
           # Import secret key
           echo "$RENKUBOT_GPG_PRIVATE" > renkubot-privatekey.asc
@@ -54,6 +54,8 @@ jobs:
           export ENC_FILE=`ls -lt dev-ci-values.yaml.gpg`
           echo "::warning file=app.js,line=1,col=5::AFTER cloning repo, $ENC_FILE"
 
+          gpg --decrypt dev-ci-values.yaml.gpg > dev-ci-values.yaml
+         
           # echo "::warning file=app.js,line=1,col=5::BEFORE reloading gpgconf $OUT"
           # gpgconf --reload gpg-agent
           # export OUT=`gpgconf`
@@ -65,6 +67,3 @@ jobs:
           # sops -d secured-values.yaml > unsecured-values.yaml
           # echo "::warning file=app.js,line=1,col=5::AFTER decrypt"
           # make values
-          cd ..
-          cp ops-dev.renku.ch/renku-values.yaml cd_values.yaml
-          rm -fr ops-dev.renku.ch
