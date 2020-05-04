@@ -9,7 +9,7 @@ jobs:
     - name: get environment
       run: env
 
-  deploy:
+  decrypt-values:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -17,23 +17,21 @@ jobs:
       env:
         RENKUBOT_GPG_PASSPHRASE: ${{ secrets.RENKUBOT_GPG_PASSPHRASE }}
         RENKUBOT_GPG_PRIVATE: ${{ secrets.RENKUBOT_GPG_PRIVATE }}
-        OPS_GPG_KEYS: ${{ secrets.OPS_GPG_KEYS }}
+        # OPS_GPG_KEYS: ${{ secrets.OPS_GPG_KEYS }}
         OPS_SIGNED_GPG_KEYS: ${{ secrets.OPS_SIGNED_GPG_KEYS }}
         RENKUBOT_OPSDEV_TOKEN: ${{ secrets.RENKUBOT_OPSDEV_TOKEN }}
-        TRUSTED_GPG: ${{ secrets.TRUSTED_GPG }}
+        # TRUSTED_GPG: ${{ secrets.TRUSTED_GPG }}
+        TEST_SECRET_GPG: ${{ secrets.TEST_SECRET_GPG }}
       run: |
-          export keys=`gpg --list-secret-keys`
-
           # Import secret key
           echo "$RENKUBOT_GPG_PRIVATE" > renkubot-privatekey.asc
           gpg --batch --yes --passphrase="$RENKUBOT_GPG_PASSPHRASE" --import renkubot-privatekey.asc
 
-          export keys=`gpg --list-secret-keys`
-          echo "Secret keys $keys"
-
           echo -e "trust\n5\ny\n" |  gpg --no-tty --command-fd 0 --expert --edit-key 87ED866E046317B13177E9D79B397DE9953E94F1
-          export keys=`gpg --list-keys`
-          echo "::warning file=app.js,line=1,col=5::AFTER trusting secret key $keys"
+          export keys=`gpg --list-secret-keys`
+          echo "AFTER trusting secret key $keys"
+
+          # echo "::warning file=app.js,line=1,col=5::AFTER trusting secret key $keys"
 
           # Import public keys
           printf "%s" "$OPS_SIGNED_GPG_KEYS" > ops.gpg.pub
@@ -41,19 +39,24 @@ jobs:
           export keys=`gpg --list-keys`
           echo "::warning file=app.js,line=1,col=5::AFTER importing public keys $keys"
 
+          # Decrypt test file
+          echo "$TEST_SECRET_GPG" > secret.txt.asc
+          gpg --decrypt --batch --passphrase="$RENKUBOT_GPG_PASSPHRASE"  secret.txt.asc  > test-secret.txt
+          cat test-secret.txt
+
           # Install sops
           # curl -sL https://github.com/mozilla/sops/releases/download/v3.5.0/sops-v3.5.0.linux -o ./sops &&  chmod +x ./sops
           # sudo mv ./sops /usr/local/bin/sops
           # export OUT=`sops --version`
           # echo "::warning file=app.js,line=1,col=5::Installed SOPS $OUT"
 
-          git clone https://RenkuBot:${RENKUBOT_OPSDEV_TOKEN}@github.com/SwissDataScienceCenter/ops-dev.renku.ch.git
-          cd ops-dev.renku.ch
-          git checkout test-gpg
-          export ENC_FILE=`ls -lt dev-ci-values.yaml.gpg`
-          echo "::warning file=app.js,line=1,col=5::AFTER cloning repo, $ENC_FILE"
+          # git clone https://RenkuBot:${RENKUBOT_OPSDEV_TOKEN}@github.com/SwissDataScienceCenter/ops-dev.renku.ch.git
+          # cd ops-dev.renku.ch
+          # git checkout test-gpg
+          # export ENC_FILE=`ls -lt dev-ci-values.yaml.gpg`
+          # echo "::warning file=app.js,line=1,col=5::AFTER cloning repo, $ENC_FILE"
 
-          gpg --decrypt dev-ci-values.yaml.gpg > dev-ci-values.yaml
+          # gpg --decrypt dev-ci-values.yaml.gpg > dev-ci-values.yaml
 
           # echo "::warning file=app.js,line=1,col=5::BEFORE reloading gpgconf $OUT"
           # gpgconf --reload gpg-agent
