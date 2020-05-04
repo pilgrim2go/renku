@@ -11,16 +11,16 @@ jobs:
   decrypt-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Decrypt test secret
-        run: |
-            echo "$TEST_SECRET_GPG" > my_secret.txt.gpg
-           ./.github/scripts/decrypt_secret.sh
-        env:
-          RENKUBOT_GPG_PASSPHRASE: ${{ secrets.RENKUBOT_GPG_PASSPHRASE }}
-          TEST_SECRET_GPG: ${{ secrets.TEST_SECRET_GPG }}
-      - name: Test printing secret
-        run: cat my_secret.txt
+    - uses: actions/checkout@v2
+    - name: Decrypt test secret
+      env:
+        RENKUBOT_GPG_PASSPHRASE: ${{ secrets.RENKUBOT_GPG_PASSPHRASE }}
+        TEST_SECRET_GPG: ${{ secrets.TEST_SECRET_GPG }}
+      run: |
+          echo "$TEST_SECRET_GPG" > my_secret.txt.gpg
+         ./.github/scripts/decrypt_secret.sh
+    - name: Test printing secret
+      run: cat my_secret.txt
   decrypt-values:
     runs-on: ubuntu-latest
     steps:
