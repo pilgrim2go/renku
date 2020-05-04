@@ -13,12 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: olafurpg/setup-gpg@v2
-    - name: test-gpg
-      run: |
-        export GPG_TTY=`$(tty)`
-        export VERSION=`gpg --version`
-        echo "::warning file=app.js,line=1,col=5::Start configuration, tty: $GPG_TTY, version $VERSION"
     - name: Decrypt values
       env:
         RENKUBOT_GPG_PASSPHRASE: ${{ secrets.RENKUBOT_GPG_PASSPHRASE }}
@@ -30,8 +24,6 @@ jobs:
       run: |
           export keys=`gpg --list-secret-keys`
           echo "::warning file=app.js,line=1,col=5::Secret keys $keys"
-          export GPG_TTY=`$(tty)`
-          echo "::warning file=app.js,line=1,col=5::Start configuration, tty: $GPG_TTY"
 
           # Import secret key
           echo "$RENKUBOT_GPG_PRIVATE" > renkubot-privatekey.asc
@@ -51,44 +43,28 @@ jobs:
           echo "::warning file=app.js,line=1,col=5::AFTER importing public keys $keys"
 
           # Install sops
-          curl -sL https://github.com/mozilla/sops/releases/download/v3.5.0/sops-v3.5.0.linux -o ./sops &&  chmod +x ./sops
-          sudo mv ./sops /usr/local/bin/sops
-          export OUT=`sops --version`
-          echo "::warning file=app.js,line=1,col=5::Installed SOPS $OUT"
+          # curl -sL https://github.com/mozilla/sops/releases/download/v3.5.0/sops-v3.5.0.linux -o ./sops &&  chmod +x ./sops
+          # sudo mv ./sops /usr/local/bin/sops
+          # export OUT=`sops --version`
+          # echo "::warning file=app.js,line=1,col=5::Installed SOPS $OUT"
 
           git clone https://RenkuBot:${RENKUBOT_OPSDEV_TOKEN}@github.com/SwissDataScienceCenter/ops-dev.renku.ch.git
           cd ops-dev.renku.ch
-          echo "::warning file=app.js,line=1,col=5::AFTER cloning repo"
+          git checkout test-gpg
+          export ENC_FILE=`ls -lt dev-ci-values.yaml.gpg`
+          echo "::warning file=app.js,line=1,col=5::AFTER cloning repo, $ENC_FILE"
 
-          echo "::warning file=app.js,line=1,col=5::BEFORE reloading gpgconf $OUT"
-          gpgconf --reload gpg-agent
-          export OUT=`gpgconf`
-          echo "::warning file=app.js,line=1,col=5::BEFORE reloading gpgconf $OUT"
-          export GPG_TTY=`$(tty)`
-          echo "::warning file=app.js,line=1,col=5::BEFORE decrypting, tty: $GPG_TTY"
+          # echo "::warning file=app.js,line=1,col=5::BEFORE reloading gpgconf $OUT"
+          # gpgconf --reload gpg-agent
+          # export OUT=`gpgconf`
+          # echo "::warning file=app.js,line=1,col=5::BEFORE reloading gpgconf $OUT"
+          # export GPG_TTY=`$(tty)`
+          # echo "::warning file=app.js,line=1,col=5::BEFORE decrypting, tty: $GPG_TTY"
           # make decrypt
-          export SOPS_PGP_FP="2E8E3E6447725A15025BD90E859123913F532F3E, 26876013D56711FC505728BB27D534C5B76B95F9, A4F184F64A53A8D026BA6352C1E9364F2F2585FB, FE818AFB977D00CECC07E3A097253E0453A2EA8A, 9890BC728622162CD986B35692A4279A8A54C999, 2BA5A9B58AE078B6CAF9E3C5282A71B05A608299, 87ED866E046317B13177E9D79B397DE9953E94F1"
-          sops -d secured-values.yaml > unsecured-values.yaml
-          echo "::warning file=app.js,line=1,col=5::AFTER decrypt"
-          make values
+          # export SOPS_PGP_FP="2E8E3E6447725A15025BD90E859123913F532F3E, 26876013D56711FC505728BB27D534C5B76B95F9, A4F184F64A53A8D026BA6352C1E9364F2F2585FB, FE818AFB977D00CECC07E3A097253E0453A2EA8A, 9890BC728622162CD986B35692A4279A8A54C999, 2BA5A9B58AE078B6CAF9E3C5282A71B05A608299, 87ED866E046317B13177E9D79B397DE9953E94F1"
+          # sops -d secured-values.yaml > unsecured-values.yaml
+          # echo "::warning file=app.js,line=1,col=5::AFTER decrypt"
+          # make values
           cd ..
           cp ops-dev.renku.ch/renku-values.yaml cd_values.yaml
           rm -fr ops-dev.renku.ch
-    - name: Deploy master to dev
-      uses: stefanprodan/kube-tools@v1
-      env:
-        KUBECONFIG: ${{ github.workspace }}/renkubot-kube.config
-        RENKUBOT_KUBECONFIG: ${{ secrets.RENKUBOT_KUBECONFIG }}
-        CD_VALUES: ${{ secrets.CD_VALUES }}
-      with:
-        kubectl: 1.16.2
-        helm: 2.16.1
-        command: |
-          echo "$RENKUBOT_KUBECONFIG" > renkubot-kube.config
-          helm init --client-only
-          helm repo add renku https://swissdatasciencecenter.github.io/helm-charts/
-          helm repo add gitlab https://charts.gitlab.io/
-          helm repo add jupyterhub https://jupyterhub.github.io/helm-chart
-          rm -rf charts/renku/charts
-          helm dependency update charts/renku
-          # for fpr in $(gpg --list-keys --with-colons  | awk -F: '/fpr:/ {print $10}' | sort -u); do  echo -e "5\ny\n" |  gpg --command-fd 0 --expert --edit-key $fpr trust; done
