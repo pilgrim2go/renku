@@ -83,6 +83,12 @@ class ProjectPage(projectSlug: String, namespace: String) extends RenkuPage with
           .find(_.text == "No merge requests to display.")
           .getOrElse(fail("No merge requests info not found"))
       }
+
+      def futureMergeRequestBanner(implicit webDriver: WebDriver): WebElement = eventually {
+        findAll(cssSelector("div.alert-warning > p"))
+          .find(_.text == "Do you want to create a merge request for branch")
+          .getOrElse(fail("No future merge requests banner found"))
+      }
     }
 
     object Issues {

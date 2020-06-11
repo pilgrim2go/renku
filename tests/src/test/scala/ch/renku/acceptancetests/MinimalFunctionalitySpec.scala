@@ -30,6 +30,9 @@ class MinimalFunctionalitySpec
     verifyIssuesIsEmpty
     createNewIssue
 
+    addBranchToProjectInGitLab
+    // createNewMergeRequest
+
     setProjectTags
     setProjectDescription
 
