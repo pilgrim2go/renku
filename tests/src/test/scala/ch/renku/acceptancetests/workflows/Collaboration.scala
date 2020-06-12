@@ -7,7 +7,6 @@ import ch.renku.acceptancetests.pages.GitLabPages.GitLabBaseUrl
 import org.openqa.selenium.{WebDriver, WebElement}
 import scala.jdk.CollectionConverters._
 import org.scalatestplus.selenium.WebBrowser.{cssSelector, find}
-
 import scala.language.postfixOps
 import scala.concurrent.duration._
 
